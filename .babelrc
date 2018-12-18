@@ -1,7 +1,19 @@
 {
   "presets": [
-    ["env", { "modules": false }],
-    "stage-3"
-  ],
-  "plugins": ["lodash"]
+    [
+      "@babel/env",
+      {
+        "targets": {
+          "browsers": [
+            ">0.5%",
+            "last 2 versions",
+            "not dead",
+            "not op_mini all"
+          ],
+          "node": 8
+        },
+        "modules": false
+      }
+    ]
+  ]
 }

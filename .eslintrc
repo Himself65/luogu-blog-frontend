@@ -1,6 +1,10 @@
 {
-  "extends": ["standard"],
-  "plugins": ["html"],
+  "extends": [
+    "standard"
+  ],
+  "plugins": [
+    "html"
+  ],
   "rules": {
     "no-unused-vars": [
       2,
