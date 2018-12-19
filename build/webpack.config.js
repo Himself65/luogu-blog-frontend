@@ -6,6 +6,8 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const LodashModuleReplacementPlugin = require('lodash-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -15,11 +17,17 @@ const happyThreadPool = HappyPack.ThreadPool({
   size: Math.min(os.cpus().length, 4)
 })
 
-const cssLoaders = [
+const stylusCssLoaders = [
   extractCSS ? MiniCssExtractPlugin.loader : 'style-loader',
   { loader: 'css-loader', options: { sourceMap: !isProd } },
   { loader: 'postcss-loader', options: { sourceMap: !isProd } },
   { loader: 'stylus-loader', options: { sourceMap: !isProd } }
+]
+
+const cssLoader = [
+  extractCSS ? MiniCssExtractPlugin.loader : 'vue-style-loader',
+  { loader: 'css-loader', options: { sourceMap: !isProd, importLoaders: 1 } },
+  { loader: 'postcss-loader', options: { sourceMap: !isProd } }
 ]
 
 const plugins = [
@@ -34,13 +42,21 @@ const plugins = [
     jQuery: 'jquery'
   }),
   new webpack.optimize.OccurrenceOrderPlugin(),
-  new MiniCssExtractPlugin({ filename: '[name].css' }),
   new HappyPack({
     id: 'js',
     threadPool: happyThreadPool,
     loaders: ['babel-loader', 'eslint-loader?cache=true?emitWarning=true']
-  })
+  }),
+  new MiniCssExtractPlugin({ filename: '[name].css' })
 ]
+
+if (isProd) {
+  plugins.push(
+    new webpack.LoaderOptionsPlugin({
+      minimize: true
+    })
+  )
+}
 
 const themeName = process.env.THEME || 'debug'
 
@@ -64,14 +80,11 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
+        use: cssLoader
       },
       {
         test: /\.styl(us)?$/,
-        use: cssLoaders
+        use: stylusCssLoaders
       },
       {
         test: /\.js$/,
@@ -128,27 +141,11 @@ module.exports = {
     noInfo: true,
     overlay: true
   },
-  devtool: '#eval-source-map'
+  devtool: isProd ? '#source-map' : '#eval-source-map'
 }
 
 if (process.env.BUNDLE_ANALYZE === 'true') {
   module.exports.plugins = (module.exports.plugins || []).concat([
     new BundleAnalyzerPlugin()
-  ])
-}
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports.devtool = '#source-map'
-  module.exports.mode = 'production'
-  // http://vue-loader.vuejs.org/en/workflow/production.html
-  module.exports.plugins = (module.exports.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"'
-      }
-    }),
-    new webpack.LoaderOptionsPlugin({
-      minimize: true
-    })
   ])
 }
