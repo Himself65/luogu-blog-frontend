@@ -42,7 +42,7 @@ const getPartials = (theme, page) => {
 
 const registerPartials = (theme, page) => {
   const partials = getPartials(theme, page)
-  partials.forEach(({name, partial}) => Handlebars.registerPartial(name, partial))
+  partials.forEach(({ name, partial }) => Handlebars.registerPartial(name, partial))
 }
 
 const compileTmpl = theme => Handlebars.compile(fs.readFileSync(path.resolve(__dirname, '..', 'templates', theme, 'handlebars', 'template.hbs'), 'utf8'))
